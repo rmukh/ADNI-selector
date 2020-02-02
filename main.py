@@ -93,20 +93,32 @@ class GUI():
                 break
             if event == 'Select':
                 if self.dp.is_merge_exists():
-                    stages = [self.menu_map_stage[i] for i in range(4) if values[i]]
-                    groups = [self.menu_map_group[i] for i in range(4, 10) if values[i]][0]
+                    self.stages = [self.menu_map_stage[i] for i in range(4) if values[i]]
+                    self.groups = [self.menu_map_group[i] for i in range(4, 10) if values[i]][0]
 
-                    res = self.dp.selectNgenerate(stages, groups)
-                    form_res = ', '.join([str(i) for i in res])
-                    self.main_window['-res_rid-'].update(form_res)
+                    res = self.dp.selectNgenerate(self.stages, self.groups)
+                    self.res_rid = ', '.join([str(i) for i in res])
+                    self.main_window['-res_rid-'].update(self.res_rid)
                     
                     # Update window with fist and last date of exam for each subject
-                    res_rid_dates = self.dp.findRidRanges()
-                    self.main_window['-res-rid_dates-'].update(res_rid_dates)
+                    self.res_rid_dates = self.dp.findRidRanges()
+                    self.main_window['-res-rid_dates-'].update(self.res_rid_dates)
+                    
+                    # Write to file if selected
+                    if values[10]:
+                        self.write_to_file()
                 else:
                     sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the same folder.')
 
         self.main_window.close()
+
+    def write_to_file(self):
+        with open('_'.join(self.stages)+'_'+'_'.join(self.groups)+'.txt', 'w') as f:
+            f.write("RIDs:\n")
+            f.write(self.res_rid)
+            f.write("\n\n")
+            f.write("RIDs and date ranges:\n")
+            f.write(self.res_rid_dates)
 
 g = GUI()
 g.run()
