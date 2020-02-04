@@ -44,33 +44,33 @@ class GUI():
             [
              sg.Frame(layout=
                     [
-                    [sg.Checkbox('ADNI-1', default=True, size=(7,1), font=("Open Sans", 12)), 
-                     sg.Checkbox('ADNI-GO', size=(7,1), font=("Open Sans", 12)), 
-                     sg.Checkbox('ADNI-2', size=(7,1), font=("Open Sans", 12)), 
-                     sg.Checkbox('ADNI-3', size=(7,1), font=("Open Sans", 12))]
+                    [sg.Checkbox('ADNI-1', default=True, size=(7,1), font=("Open Sans", 11)), 
+                     sg.Checkbox('ADNI-GO', size=(7,1), font=("Open Sans", 11)), 
+                     sg.Checkbox('ADNI-2', size=(7,1), font=("Open Sans", 11)), 
+                     sg.Checkbox('ADNI-3', size=(7,1), font=("Open Sans", 11))]
                     ], title='Select ADNI phase(s)', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 16))
             ],
 
             [
              sg.Frame(layout=
                     [
-                    [sg.Radio('CN->MCI', "g", size=(8,1), font=("Open Sans", 12)), 
-                     sg.Radio("CN->AD", "g", default=True, size=(8,1), font=("Open Sans", 12)), 
-                     sg.Radio('MCI->AD', "g", size=(8,1), font=("Open Sans", 12))],
-                    [sg.Radio('CN->CN', "g", size=(8,1), font=("Open Sans", 12)), 
-                     sg.Radio('MCI->MCI', "g", size=(8,1), font=("Open Sans", 12)), 
-                     sg.Radio('AD->AD', "g", size=(8,1), font=("Open Sans", 12))]
+                    [sg.Radio('CN->MCI', "g", size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio("CN->AD", "g", default=True, size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio('MCI->AD', "g", size=(8,1), font=("Open Sans", 11))],
+                    [sg.Radio('CN->CN', "g", size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio('MCI->MCI', "g", size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio('AD->AD', "g", size=(8,1), font=("Open Sans", 11))]
                     ], title='Select group', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 16))
             ],
-            [sg.Text('Age', font=("Open Sans", 12)), 
+            [sg.Text('Age', font=("Open Sans", 11)), 
              sg.InputText(size=(5,1), default_text='0.0', font=("Open Sans", 10)),
-             sg.Text('±', font=("Open Sans", 12)),
+             sg.Text('±', font=("Open Sans", 11)),
              sg.InputText(size=(5,1), default_text='0.0', font=("Open Sans", 10)),
-             sg.Checkbox('Save to file', font=("Open Sans", 12))],
+             sg.Checkbox('Save to file', font=("Open Sans", 11))],
             [sg.Text('RIDs', font=("Open Sans", 16))],
-            [sg.Multiline(key='-res_rid-', size=(50,8))],
+            [sg.Multiline(key='-res_rid-', size=(50,7))],
             [sg.Text('RIDs date ranges', font=("Open Sans", 16))],
-            [sg.Multiline(key='-res-rid_dates-', size=(50,8))],
+            [sg.Multiline(key='-res-rid_dates-', size=(50,7))],
             [sg.Button('Select', font=("Open Sans", 14))]
         ]
 
@@ -135,7 +135,7 @@ class GUI():
                         self.main_window['-res-rid_dates-'].update(self.res_rid_dates)
                     
                         # Write to file if selected and there are results to write
-                        if self.values[12]:
+                        if self.values[11]:
                             self.write_to_file()
                 else:
                     sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the same folder.')
