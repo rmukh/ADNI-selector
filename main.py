@@ -44,34 +44,34 @@ class GUI():
             [
              sg.Frame(layout=
                     [
-                    [sg.Checkbox('ADNI-1', default=True, size=(7,1), font=("Verdana", 12)), 
-                     sg.Checkbox('ADNI-GO', size=(7,1), font=("Verdana", 12)), 
-                     sg.Checkbox('ADNI-2', size=(7,1), font=("Verdana", 12)), 
-                     sg.Checkbox('ADNI-3', size=(7,1), font=("Verdana", 12))]
-                    ], title='Select ADNI phase(s)', relief=sg.RELIEF_SUNKEN, font=("Verdana", 16))
+                    [sg.Checkbox('ADNI-1', default=True, size=(7,1), font=("Open Sans", 12)), 
+                     sg.Checkbox('ADNI-GO', size=(7,1), font=("Open Sans", 12)), 
+                     sg.Checkbox('ADNI-2', size=(7,1), font=("Open Sans", 12)), 
+                     sg.Checkbox('ADNI-3', size=(7,1), font=("Open Sans", 12))]
+                    ], title='Select ADNI phase(s)', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 16))
             ],
 
             [
              sg.Frame(layout=
                     [
-                    [sg.Radio('CN->MCI', "g", size=(8,1), font=("Verdana", 12)), 
-                     sg.Radio("CN->AD", "g", default=True, size=(8,1), font=("Verdana", 12)), 
-                     sg.Radio('MCI->AD', "g", size=(8,1), font=("Verdana", 12))],
-                    [sg.Radio('CN->CN', "g", size=(8,1), font=("Verdana", 12)), 
-                     sg.Radio('MCI->MCI', "g", size=(8,1), font=("Verdana", 12)), 
-                     sg.Radio('AD->AD', "g", size=(8,1), font=("Verdana", 12))]
-                    ], title='Select group', relief=sg.RELIEF_SUNKEN, font=("Verdana", 16))
+                    [sg.Radio('CN->MCI', "g", size=(8,1), font=("Open Sans", 12)), 
+                     sg.Radio("CN->AD", "g", default=True, size=(8,1), font=("Open Sans", 12)), 
+                     sg.Radio('MCI->AD', "g", size=(8,1), font=("Open Sans", 12))],
+                    [sg.Radio('CN->CN', "g", size=(8,1), font=("Open Sans", 12)), 
+                     sg.Radio('MCI->MCI', "g", size=(8,1), font=("Open Sans", 12)), 
+                     sg.Radio('AD->AD', "g", size=(8,1), font=("Open Sans", 12))]
+                    ], title='Select group', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 16))
             ],
-            [sg.Text('Age', font=("Verdana", 12)), 
-             sg.InputText(size=(5,1), default_text='0.0', font=("Verdana", 10)),
-             sg.Text('±', font=("Verdana", 12)),
-             sg.InputText(size=(5,1), default_text='0.0', font=("Verdana", 10)),
-             sg.Checkbox('Save to file', font=("Verdana", 12))],
-            [sg.Text('RIDs', font=("Verdana", 16))],
+            [sg.Text('Age', font=("Open Sans", 12)), 
+             sg.InputText(size=(5,1), default_text='0.0', font=("Open Sans", 10)),
+             sg.Text('±', font=("Open Sans", 12)),
+             sg.InputText(size=(5,1), default_text='0.0', font=("Open Sans", 10)),
+             sg.Checkbox('Save to file', font=("Open Sans", 12))],
+            [sg.Text('RIDs', font=("Open Sans", 16))],
             [sg.Multiline(key='-res_rid-', size=(50,8))],
-            [sg.Text('RIDs date ranges', font=("Verdana", 16))],
+            [sg.Text('RIDs date ranges', font=("Open Sans", 16))],
             [sg.Multiline(key='-res-rid_dates-', size=(50,8))],
-            [sg.Button('Select', font=("Verdana", 14))]
+            [sg.Button('Select', font=("Open Sans", 14))]
         ]
 
         self.main_window = sg.Window('Select subjects', self.main_layout, grab_anywhere=False)
