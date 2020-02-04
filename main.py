@@ -14,10 +14,13 @@ class DATA_PROCESS():
         # Check if ADNIMERGE.csv file is available
         return exists('ADNIMERGE.csv')
 
-    def selectNgenerate(self, stages, diags):
+    def selectNgenerate(self, stages, diags, age, age_range):
         adni_full = pd.read_csv('ADNIMERGE.csv', skipinitialspace=True, usecols=self.fields)
 
         self.phase = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX.isin(diags)]
+        if age != 0.0:
+            self.phase = self.phase[self.phase.AGE.between(age - age_range, age + age_range)]
+
         self.phase = self.phase.sort_values(by=['Month'])
 
         self.groups = self.phase.groupby('RID', sort=False)
@@ -25,7 +28,7 @@ class DATA_PROCESS():
         self.filtered_groups = self.groups.filter(lambda x: x.DX.eq(diags[0]).values[0] & x.DX.eq(diags[1]).values[-1])
         self.u_rids = self.filtered_groups.RID.unique()
         return self.u_rids
-    
+
     def findRidRanges(self):
         rid_groups = self.filtered_groups.groupby('RID', sort=False)
         
@@ -59,7 +62,11 @@ class GUI():
                      sg.Radio('AD->AD', "g", size=(8,1), font=("Verdana", 12))]
                     ], title='Select group', relief=sg.RELIEF_SUNKEN, font=("Verdana", 16))
             ],
-            [sg.Checkbox('Save to file', font=("Verdana", 12))],
+            [sg.Text('Age', font=("Verdana", 12)), 
+             sg.InputText(size=(5,1), default_text='0.0', font=("Verdana", 10)),
+             sg.Text('±', font=("Verdana", 12)),
+             sg.InputText(size=(5,1), default_text='0.0', font=("Verdana", 10)),
+             sg.Checkbox('Save to file', font=("Verdana", 12))],
             [sg.Text('RIDs', font=("Verdana", 16))],
             [sg.Multiline(key='-res_rid-', size=(50,8))],
             [sg.Text('RIDs date ranges', font=("Verdana", 16))],
@@ -68,12 +75,13 @@ class GUI():
         ]
 
         self.main_window = sg.Window('Select subjects', self.main_layout, grab_anywhere=False)
-        
+
         # Maps for meny only
         self.menu_map_stage = dict([(0, 'ADNI1'),
                               (1, 'ADNIGO'),
                               (2, 'ADNI2'),
-                              (3, 'ADNI3')])
+                              (3, 'ADNI3')
+                              ])
 
         self.menu_map_group = dict([(4, ['CN', 'MCI']),
                               (5, ['CN', 'AD']),
@@ -85,28 +93,50 @@ class GUI():
 
         self.dp = DATA_PROCESS()
 
+    def age_check(self):
+        age = 0.0
+        age_range = 0.0
+        if self.values[10].replace('.','',1).isdigit() and self.values[11].replace('.','',1).isdigit():
+            age = float(self.values[10])
+            age_range = float(self.values[11])
+            if age < 0.0 or age_range < 0.0:
+                sg.Popup('Age can\'t be negative. Will be ignored in the final output.')
+                age = 0.0
+                age_range = 0.0
+        else:
+            sg.Popup('Your input in the Age field is not a real value. Will be ignored in the final output.')
+        return age, age_range
+
     def run(self):
         while True:
-            event, values = self.main_window.read()
+            self.event, self.values = self.main_window.read()
 
-            if event is None:
+            if self.event is None:
                 break
-            if event == 'Select':
-                if self.dp.is_merge_exists():
-                    self.stages = [self.menu_map_stage[i] for i in range(4) if values[i]]
-                    self.groups = [self.menu_map_group[i] for i in range(4, 10) if values[i]][0]
+            if self.event == 'Select':
+                age, age_range = self.age_check()
 
-                    res = self.dp.selectNgenerate(self.stages, self.groups)
+                if self.dp.is_merge_exists():
+                    self.stages = [self.menu_map_stage[i] for i in range(4) if self.values[i]]
+                    self.groups = [self.menu_map_group[i] for i in range(4, 10) if self.values[i]][0]
+
+                    res = self.dp.selectNgenerate(self.stages, self.groups, age, age_range)
                     self.res_rid = ', '.join([str(i) for i in res])
-                    self.main_window['-res_rid-'].update(self.res_rid)
                     
-                    # Update window with fist and last date of exam for each subject
-                    self.res_rid_dates = self.dp.findRidRanges()
-                    self.main_window['-res-rid_dates-'].update(self.res_rid_dates)
+                    if self.res_rid == '': # if no results with specified input params
+                        no_results_text = 'No results for the specified input!'
+                        self.main_window['-res_rid-'].update(no_results_text)
+                        self.main_window['-res-rid_dates-'].update(no_results_text)
+                    else:
+                        self.main_window['-res_rid-'].update(self.res_rid)
+
+                        # Update window with fist and last date of exam for each subject
+                        self.res_rid_dates = self.dp.findRidRanges()
+                        self.main_window['-res-rid_dates-'].update(self.res_rid_dates)
                     
-                    # Write to file if selected
-                    if values[10]:
-                        self.write_to_file()
+                        # Write to file if selected and there are results to write
+                        if self.values[12]:
+                            self.write_to_file()
                 else:
                     sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the same folder.')
 
