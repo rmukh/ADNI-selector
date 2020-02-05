@@ -8,7 +8,7 @@ from os.path import exists
 class DATA_PROCESS():
     def __init__(self):
         # Fields to read from a ADNIMERGE file
-        self.fields = ['RID', 'PTID', 'AGE', 'COLPROT', 'EXAMDATE', 'Month', 'DX']
+        self.fields = ['RID', 'PTID', 'AGE', 'COLPROT', 'EXAMDATE', 'Month', 'DX', 'DX_bl']
 
     def is_merge_exists(self):
         # Check if ADNIMERGE.csv file is available
@@ -115,6 +115,7 @@ class GUI():
                 break
             if self.event == 'Select':
                 age, age_range = self.age_check()
+                self.age_file_name = str(age-age_range) + '-' + str(age+age_range) if age != 0.0 else ''
 
                 if self.dp.is_merge_exists():
                     self.stages = [self.menu_map_stage[i] for i in range(4) if self.values[i]]
@@ -143,7 +144,7 @@ class GUI():
         self.main_window.close()
 
     def write_to_file(self):
-        with open('_'.join(self.stages)+'_'+'_'.join(self.groups)+'.txt', 'w') as f:
+        with open('_'.join(self.stages)+'_'+'_'.join(self.groups)+'_'+self.age_file_name+'.txt', 'w') as f:
             f.write("RIDs:\n")
             f.write(self.res_rid)
             f.write("\n\n")
