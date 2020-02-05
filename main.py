@@ -8,7 +8,7 @@ from os.path import exists
 class DATA_PROCESS():
     def __init__(self):
         # Fields to read from a ADNIMERGE file
-        self.fields = ['RID', 'PTID', 'AGE', 'COLPROT', 'EXAMDATE', 'Month', 'DX', 'DX_bl']
+        self.fields = ['RID', 'PTID', 'AGE', 'COLPROT', 'EXAMDATE', 'Month', 'DX', 'DX_bl', 'VISCODE']
 
     def is_merge_exists(self):
         # Check if ADNIMERGE.csv file is available
@@ -26,7 +26,7 @@ class DATA_PROCESS():
 
             if age != 0.0:
                 self.phase = self.phase[self.phase.AGE.between(age - age_range, age + age_range)]
-    
+
             self.phase = self.phase.sort_values(by=['Month'])
     
             self.groups = self.phase.groupby('RID', sort=False)
@@ -56,7 +56,7 @@ class GUI():
                      sg.Checkbox('ADNI-GO', size=(7,1), font=("Open Sans", 11)), 
                      sg.Checkbox('ADNI-2', size=(7,1), font=("Open Sans", 11)), 
                      sg.Checkbox('ADNI-3', size=(7,1), font=("Open Sans", 11))]
-                    ], title='Select ADNI phase(s)', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 16))
+                    ], title='Select ADNI phase(s)', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 14))
             ],
 
             [
@@ -68,13 +68,23 @@ class GUI():
                     [sg.Radio('CN->CN', "g", size=(8,1), font=("Open Sans", 11)), 
                      sg.Radio('MCI->MCI', "g", size=(8,1), font=("Open Sans", 11)), 
                      sg.Radio('AD->AD', "g", size=(8,1), font=("Open Sans", 11))],
+                    ], title='Converged subjects', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 14))
+            ],
+            
+            [
+             sg.Frame(layout=
+                    [
+                    [sg.Radio('CN', "g", size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio('MCI', "g", size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio('AD', "g", size=(8,1), font=("Open Sans", 11))],
                     [sg.Radio('EMCI', "g", size=(8,1), font=("Open Sans", 11)), 
                      sg.Radio('LMCI', "g", size=(8,1), font=("Open Sans", 11))]
-                    ], title='Select group', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 16))
+                    ], title='Classification groups', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 14))
             ],
+            
             [sg.Text('Age', font=("Open Sans", 11)), 
              sg.InputText(size=(5,1), default_text='0.0', font=("Open Sans", 10)),
-             sg.Text('±', font=("Open Sans", 11)),
+             sg.Text('±', font=("Verdana", 12)),
              sg.InputText(size=(5,1), default_text='0.0', font=("Open Sans", 10)),
              sg.Checkbox('Save to file', font=("Open Sans", 11))],
             [sg.Text('RIDs', font=("Open Sans", 16))],
@@ -99,8 +109,11 @@ class GUI():
                               (7, ['CN', 'CN']),
                               (8, ['MCI', 'MCI']),
                               (9, ['AD', 'AD']),
-                              (10, ['EMCI']),
-                              (11, ['LMCI'])
+                              (10, ['CN']),
+                              (11, ['MCI']),
+                              (12, ['AD']),
+                              (13, ['EMCI']),
+                              (14, ['LMCI'])
                               ])
 
         self.dp = DATA_PROCESS()
@@ -108,9 +121,9 @@ class GUI():
     def age_check(self):
         age = 0.0
         age_range = 0.0
-        if self.values[12].replace('.','',1).isdigit() and self.values[13].replace('.','',1).isdigit():
-            age = float(self.values[12])
-            age_range = float(self.values[13])
+        if self.values[15].replace('.','',1).isdigit() and self.values[16].replace('.','',1).isdigit():
+            age = float(self.values[15])
+            age_range = float(self.values[16])
             if age < 0.0 or age_range < 0.0:
                 sg.Popup('Age can\'t be negative. Will be ignored in the final output.')
                 age = 0.0
@@ -148,7 +161,7 @@ class GUI():
                         self.main_window['-res-rid_dates-'].update(self.res_rid_dates)
 
                         # Write to file if selected and there are results to write
-                        if self.values[14]:
+                        if self.values[17]:
                             self.write_to_file()
                 else:
                     sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the same folder.')
