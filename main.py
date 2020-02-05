@@ -17,16 +17,24 @@ class DATA_PROCESS():
     def selectNgenerate(self, stages, diags, age, age_range):
         adni_full = pd.read_csv('ADNIMERGE.csv', skipinitialspace=True, usecols=self.fields)
 
-        self.phase = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX.isin(diags)]
-        if age != 0.0:
-            self.phase = self.phase[self.phase.AGE.between(age - age_range, age + age_range)]
+        if len(diags) == 1:
+            self.filtered_groups = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX_bl.isin(diags)] # for emci and lmci group selection
+            if age != 0.0:
+                self.filtered_groups = self.filtered_groups[self.filtered_groups.AGE.between(age - age_range, age + age_range)]
+        else:
+            self.phase = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX.isin(diags)]
 
-        self.phase = self.phase.sort_values(by=['Month'])
-
-        self.groups = self.phase.groupby('RID', sort=False)
-
-        self.filtered_groups = self.groups.filter(lambda x: x.DX.eq(diags[0]).values[0] & x.DX.eq(diags[1]).values[-1])
+            if age != 0.0:
+                self.phase = self.phase[self.phase.AGE.between(age - age_range, age + age_range)]
+    
+            self.phase = self.phase.sort_values(by=['Month'])
+    
+            self.groups = self.phase.groupby('RID', sort=False)
+    
+            self.filtered_groups = self.groups.filter(lambda x: x.DX.eq(diags[0]).values[0] & x.DX.eq(diags[1]).values[-1])
+        
         self.u_rids = self.filtered_groups.RID.unique()
+            
         return self.u_rids
 
     def findRidRanges(self):
@@ -59,7 +67,9 @@ class GUI():
                      sg.Radio('MCI->AD', "g", size=(8,1), font=("Open Sans", 11))],
                     [sg.Radio('CN->CN', "g", size=(8,1), font=("Open Sans", 11)), 
                      sg.Radio('MCI->MCI', "g", size=(8,1), font=("Open Sans", 11)), 
-                     sg.Radio('AD->AD', "g", size=(8,1), font=("Open Sans", 11))]
+                     sg.Radio('AD->AD', "g", size=(8,1), font=("Open Sans", 11))],
+                    [sg.Radio('EMCI', "g", size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio('LMCI', "g", size=(8,1), font=("Open Sans", 11))]
                     ], title='Select group', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 16))
             ],
             [sg.Text('Age', font=("Open Sans", 11)), 
@@ -88,7 +98,9 @@ class GUI():
                               (6, ['MCI', 'AD']),
                               (7, ['CN', 'CN']),
                               (8, ['MCI', 'MCI']),
-                              (9, ['AD', 'AD'])
+                              (9, ['AD', 'AD']),
+                              (10, ['EMCI']),
+                              (11, ['LMCI'])
                               ])
 
         self.dp = DATA_PROCESS()
@@ -96,9 +108,9 @@ class GUI():
     def age_check(self):
         age = 0.0
         age_range = 0.0
-        if self.values[10].replace('.','',1).isdigit() and self.values[11].replace('.','',1).isdigit():
-            age = float(self.values[10])
-            age_range = float(self.values[11])
+        if self.values[12].replace('.','',1).isdigit() and self.values[13].replace('.','',1).isdigit():
+            age = float(self.values[12])
+            age_range = float(self.values[13])
             if age < 0.0 or age_range < 0.0:
                 sg.Popup('Age can\'t be negative. Will be ignored in the final output.')
                 age = 0.0
@@ -119,11 +131,11 @@ class GUI():
 
                 if self.dp.is_merge_exists():
                     self.stages = [self.menu_map_stage[i] for i in range(4) if self.values[i]]
-                    self.groups = [self.menu_map_group[i] for i in range(4, 10) if self.values[i]][0]
+                    self.groups = [self.menu_map_group[i] for i in range(4, 12) if self.values[i]][0]
 
                     res = self.dp.selectNgenerate(self.stages, self.groups, age, age_range)
                     self.res_rid = ', '.join([str(i) for i in res])
-                    
+
                     if self.res_rid == '': # if no results with specified input params
                         no_results_text = 'No results for the specified input!'
                         self.main_window['-res_rid-'].update(no_results_text)
@@ -134,9 +146,9 @@ class GUI():
                         # Update window with fist and last date of exam for each subject
                         self.res_rid_dates = self.dp.findRidRanges()
                         self.main_window['-res-rid_dates-'].update(self.res_rid_dates)
-                    
+
                         # Write to file if selected and there are results to write
-                        if self.values[11]:
+                        if self.values[14]:
                             self.write_to_file()
                 else:
                     sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the same folder.')
