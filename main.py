@@ -14,18 +14,21 @@ class DATA_PROCESS():
         # Check if ADNIMERGE.csv file is available
         return exists('ADNIMERGE.csv')
 
-    def selectNgenerate(self, stages, diags, age, age_range, include_convrgd):
+    def selectNgenerate(self, stages, diags, age, age_range, stable_only):
         adni_full = pd.read_csv('ADNIMERGE.csv', skipinitialspace=True, usecols=self.fields)
 
         if len(diags) == 1:
-            self.filtered_groups = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX_bl.isin(diags)] # for classification group selection
-            
+            if diags[0] == 'EMCI' or diags[0] == 'LMCI':
+                self.filtered_groups = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX_bl.isin(diags)] # for classification group selection
+            else:
+                self.filtered_groups = adni_full[adni_full.COLPROT.isin(stages) & (adni_full.DX.isin(diags) | adni_full.DX_bl.isin(diags))]
+
             if age != 0.0:
                 self.filtered_groups = self.filtered_groups[self.filtered_groups.AGE.between(age - age_range, age + age_range)]
-            
+
             self.filtered_groups = self.filtered_groups.sort_values(by=['Month'])
 
-            if not include_convrgd:
+            if stable_only:
                 self.filtered_groups = self.filtered_groups.dropna(subset=['DX'])
                 
                 self.groups = self.filtered_groups.groupby('RID', sort=False)
@@ -74,7 +77,7 @@ class GUI():
              sg.Frame(layout=
                     [
                     [sg.Radio('CN->MCI', "g", size=(8,1), font=("Open Sans", 11)), 
-                     sg.Radio("CN->AD", "g", default=True, size=(8,1), font=("Open Sans", 11)), 
+                     sg.Radio('CN->AD', "g", default=True, size=(8,1), font=("Open Sans", 11)), 
                      sg.Radio('MCI->AD', "g", size=(8,1), font=("Open Sans", 11))],
                     [sg.Radio('CN->CN', "g", size=(8,1), font=("Open Sans", 11)), 
                      sg.Radio('MCI->MCI', "g", size=(8,1), font=("Open Sans", 11)), 
@@ -157,7 +160,7 @@ class GUI():
 
                 if self.dp.is_merge_exists():
                     self.stages = [self.menu_map_stage[i] for i in range(4) if self.values[i]]
-                    self.groups = [self.menu_map_group[i] for i in range(4, 12) if self.values[i]][0]
+                    self.groups = [self.menu_map_group[i] for i in range(4, 15) if self.values[i]][0]
 
                     res = self.dp.selectNgenerate(self.stages, self.groups, age, age_range, self.values[15])
                     self.res_rid = ', '.join([str(i) for i in res])
