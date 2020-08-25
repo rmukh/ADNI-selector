@@ -4,21 +4,24 @@
 import pandas as pd
 import PySimpleGUI as sg
 from os.path import exists
+from os.path import join
 
 
 class DataProcessing:
     def __init__(self):
+        # CSV tables from ADNI website
+        self.merge_file = join('CSVs', 'ADNIMERGE.csv')
+
         # Fields to read from a ADNIMERGE file
         self.fields = ['RID', 'PTID', 'AGE', 'COLPROT', 'EXAMDATE', 'Month', 'DX', 'DX_bl', 'VISCODE']
         self.filtered_groups = None
 
-    @staticmethod
-    def is_merge_exists():
+    def is_merge_exists(self):
         # Check if ADNIMERGE.csv file is available
-        return exists('ADNIMERGE.csv')
+        return exists(self.merge_file)
 
     def select_and_generate(self, stages, diags, age, age_range, stable_only):
-        adni_full = pd.read_csv('ADNIMERGE.csv', skipinitialspace=True, usecols=self.fields)
+        adni_full = pd.read_csv(self.merge_file, skipinitialspace=True, usecols=self.fields)
 
         if len(diags) == 1:
             if diags[0] == 'EMCI' or diags[0] == 'LMCI':
