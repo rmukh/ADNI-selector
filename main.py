@@ -83,8 +83,8 @@ class GUI:
 
             [
                 sg.Frame(layout=[
-                    [sg.Radio('CN->MCI', "g", size=(8, 1), font=("Open Sans", 11)),
-                     sg.Radio('CN->AD', "g", default=True, size=(8, 1), font=("Open Sans", 11)),
+                    [sg.Radio('CN->MCI', "g", default=True, size=(8, 1), font=("Open Sans", 11)),
+                     sg.Radio('CN->AD', "g", size=(8, 1), font=("Open Sans", 11)),
                      sg.Radio('MCI->AD', "g", size=(8, 1), font=("Open Sans", 11))],
                     [sg.Radio('CN->CN', "g", size=(8, 1), font=("Open Sans", 11)),
                      sg.Radio('MCI->MCI', "g", size=(8, 1), font=("Open Sans", 11)),
@@ -105,9 +105,9 @@ class GUI:
             ],
 
             [sg.Text('Age', font=("Open Sans", 11)),
-             sg.InputText(size=(5, 1), default_text='0.0', font=("Open Sans", 10)),
+             sg.InputText(size=(5, 1), default_text='60.0', font=("Open Sans", 10)),
              sg.Text(u'\xb1', font=("Default 12", 12)),  # plus minus symbol
-             sg.InputText(size=(5, 1), default_text='0.0', font=("Open Sans", 10)),
+             sg.InputText(size=(5, 1), default_text='5.0', font=("Open Sans", 10)),
              sg.Checkbox('Save to file', font=("Open Sans", 11))],
             [sg.Text('RIDs', font=("Open Sans", 16))],
             [sg.Multiline(key='-res_rid-', size=(50, 7))],
@@ -142,6 +142,10 @@ class GUI:
         self.dp = DataProcessing()
 
     def age_check(self):
+        """
+        Check if the user input age is indeed float point
+        :return: return 'clean' age and range for it
+        """
         age = 0.0
         age_range = 0.0
         if self.values[16].replace('.', '', 1).isdigit() and self.values[17].replace('.', '', 1).isdigit():
@@ -159,7 +163,7 @@ class GUI:
         while True:
             event, self.values = self.main_window.read()
 
-            if event is None:
+            if event == sg.WINDOW_CLOSED or event == 'Exit':
                 break
             if event == 'Select':
                 age, age_range = self.age_check()
@@ -187,7 +191,7 @@ class GUI:
                         if self.values[18]:
                             self.write_to_file(stages, groups, age_file_name, res_rid, res_rid_dates)
                 else:
-                    sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the same folder.')
+                    sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the CSVs folder and restart the program.')
 
         self.main_window.close()
 
