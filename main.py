@@ -56,13 +56,13 @@ class DataProcessing:
             # Filter subjects that are converged from diags[0] to diags[1]
             self.filtered_groups = groups.filter(lambda x: x.DX.eq(diags[0]).values[0] & x.DX.eq(diags[1]).values[-1])
 
-        u_rids = self.filtered_groups.RID.unique()
-        return u_rids
+        u_ptids = self.filtered_groups.PTID.unique()
+        return u_ptids
 
     def find_rid_ranges(self):
-        rid_groups = self.filtered_groups.groupby('RID', sort=False)
+        ptid_groups = self.filtered_groups.groupby('PTID', sort=False)
 
-        frame = pd.DataFrame({'First': rid_groups.first().EXAMDATE, 'Last': rid_groups.last().EXAMDATE})
+        frame = pd.DataFrame({'\u3000\u3000\u3000First': ptid_groups.first().EXAMDATE, '\u3000\u3000Last': ptid_groups.last().EXAMDATE})
         return frame.to_string()
 
 
@@ -109,9 +109,9 @@ class GUI:
              sg.Text(u'\xb1', font=("Default 12", 12)),  # plus minus symbol
              sg.InputText(size=(5, 1), default_text='5.0', font=("Open Sans", 10)),
              sg.Checkbox('Save to file', font=("Open Sans", 11))],
-            [sg.Text('RIDs', font=("Open Sans", 16))],
+            [sg.Text('Subject IDs', font=("Open Sans", 16))],
             [sg.Multiline(key='-res_rid-', size=(50, 7))],
-            [sg.Text('RIDs date ranges', font=("Open Sans", 16))],
+            [sg.Text('Subject IDs date ranges', font=("Open Sans", 16))],
             [sg.Multiline(key='-res-rid_dates-', size=(50, 7))],
             [sg.Button('Select', font=("Open Sans", 14))]
         ]
@@ -198,10 +198,10 @@ class GUI:
     @staticmethod
     def write_to_file(stages, groups, fn, res_rid, dates):
         with open('_'.join(stages) + '_' + '_'.join(groups) + '_' + fn + '.txt', 'w') as f:
-            f.write("RIDs:\n")
+            f.write("Subject IDs:\n")
             f.write(res_rid)
             f.write("\n\n")
-            f.write("RIDs and date ranges:\n")
+            f.write("Subject IDs and date ranges:\n")
             f.write(dates)
 
 
