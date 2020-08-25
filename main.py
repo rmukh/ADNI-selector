@@ -85,10 +85,7 @@ class GUI:
                 sg.Frame(layout=[
                     [sg.Radio('CN->MCI', "g", default=True, size=(8, 1), font=("Open Sans", 11)),
                      sg.Radio('CN->AD', "g", size=(8, 1), font=("Open Sans", 11)),
-                     sg.Radio('MCI->AD', "g", size=(8, 1), font=("Open Sans", 11))],
-                    [sg.Radio('CN->CN', "g", size=(8, 1), font=("Open Sans", 11)),
-                     sg.Radio('MCI->MCI', "g", size=(8, 1), font=("Open Sans", 11)),
-                     sg.Radio('AD->AD', "g", size=(8, 1), font=("Open Sans", 11))],
+                     sg.Radio('MCI->AD', "g", size=(8, 1), font=("Open Sans", 11))]
                 ], title='Converged subjects', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 14))
             ],
 
@@ -99,15 +96,15 @@ class GUI:
                      sg.Radio('AD', "g", size=(8, 1), font=("Open Sans", 11))],
                     [sg.Radio('EMCI', "g", size=(8, 1), font=("Open Sans", 11)),
                      sg.Radio('LMCI', "g", size=(8, 1), font=("Open Sans", 11)),
-                     sg.Checkbox('stable only?', font=("Open Sans", 11), default=True,
+                     sg.Checkbox('stable only?', font=("Open Sans", 11), default=True, key='-is-stable-',
                                  tooltip='Include subjects that have been converged to other groups?')]
                 ], title='Classification groups', relief=sg.RELIEF_SUNKEN, font=("Open Sans", 14))
             ],
 
             [sg.Text('Age', font=("Open Sans", 11)),
-             sg.InputText(size=(5, 1), default_text='60.0', font=("Open Sans", 10)),
+             sg.InputText(size=(5, 1), default_text='60.0', font=("Open Sans", 10), key='-age-'),
              sg.Text(u'\xb1', font=("Default 12", 12)),  # plus minus symbol
-             sg.InputText(size=(5, 1), default_text='5.0', font=("Open Sans", 10)),
+             sg.InputText(size=(5, 1), default_text='5.0', font=("Open Sans", 10), key='-age-range-'),
              sg.Checkbox('Save to file', font=("Open Sans", 11), key='-is-save-file-')],
             [sg.Text('Subject IDs', font=("Open Sans", 16))],
             [sg.Multiline(key='-res_rid-', size=(50, 7))],
@@ -128,14 +125,11 @@ class GUI:
         self.menu_map_group = dict([(4, ['CN', 'MCI']),
                                     (5, ['CN', 'AD']),
                                     (6, ['MCI', 'AD']),
-                                    (7, ['CN', 'CN']),
-                                    (8, ['MCI', 'MCI']),
-                                    (9, ['AD', 'AD']),
-                                    (10, ['CN']),
-                                    (11, ['MCI']),
-                                    (12, ['AD']),
-                                    (13, ['EMCI']),
-                                    (14, ['LMCI'])
+                                    (7, ['CN']),
+                                    (8, ['MCI']),
+                                    (9, ['AD']),
+                                    (10, ['EMCI']),
+                                    (11, ['LMCI'])
                                     ])
 
         self.values = None
@@ -148,9 +142,9 @@ class GUI:
         """
         age = 0.0
         age_range = 0.0
-        if self.values[16].replace('.', '', 1).isdigit() and self.values[17].replace('.', '', 1).isdigit():
-            age = float(self.values[16])
-            age_range = float(self.values[17])
+        if self.values['-age-'].replace('.', '', 1).isdigit() and self.values['-age-range-'].replace('.', '', 1).isdigit():
+            age = float(self.values['-age-'])
+            age_range = float(self.values['-age-range-'])
             if age < 0.0 or age_range < 0.0:
                 sg.Popup('Age can\'t be negative. Will be ignored in the final output.')
                 age = 0.0
@@ -171,9 +165,9 @@ class GUI:
 
                 if self.dp.is_merge_exists():
                     stages = [self.menu_map_stage[i] for i in range(4) if self.values[i]]
-                    groups = [self.menu_map_group[i] for i in range(4, 15) if self.values[i]][0]
+                    groups = [self.menu_map_group[i] for i in range(4, 12) if self.values[i]][0]
 
-                    res = self.dp.select_and_generate(stages, groups, age, age_range, self.values[15])
+                    res = self.dp.select_and_generate(stages, groups, age, age_range, self.values['-is-stable-'])
                     res_rid = ', '.join([str(i) for i in res])
 
                     if res_rid == '':  # if no results with specified input params
@@ -188,7 +182,8 @@ class GUI:
                         self.main_window['-res-rid-dates-'].update(res_rid_dates)
 
                         # Write to file if selected and there are results to write
-                        if self.main_window['-is-save-file-']:
+
+                        if self.values['-is-save-file-']:
                             self.write_to_file(stages, groups, age_file_name, res_rid, res_rid_dates)
                 else:
                     sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the CSVs folder and restart the program.')
