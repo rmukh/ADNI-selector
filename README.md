@@ -1,4 +1,4 @@
-# ADNI selector
+# ADNI subjects finder
 
 This program helps to find subjects based on their diagnosis (CN, MCI, AD). It was developed for my personal longitudinal study to query those who converged or not, e.g., from CN to MCI, from CN to CN (stable subjects), etc.
 

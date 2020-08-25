@@ -108,11 +108,11 @@ class GUI:
              sg.InputText(size=(5, 1), default_text='60.0', font=("Open Sans", 10)),
              sg.Text(u'\xb1', font=("Default 12", 12)),  # plus minus symbol
              sg.InputText(size=(5, 1), default_text='5.0', font=("Open Sans", 10)),
-             sg.Checkbox('Save to file', font=("Open Sans", 11))],
+             sg.Checkbox('Save to file', font=("Open Sans", 11), key='-is-save-file-')],
             [sg.Text('Subject IDs', font=("Open Sans", 16))],
             [sg.Multiline(key='-res_rid-', size=(50, 7))],
             [sg.Text('Subject IDs date ranges', font=("Open Sans", 16))],
-            [sg.Multiline(key='-res-rid_dates-', size=(50, 7))],
+            [sg.Multiline(key='-res-rid-dates-', size=(50, 7))],
             [sg.Button('Select', font=("Open Sans", 14))]
         ]
 
@@ -179,16 +179,16 @@ class GUI:
                     if res_rid == '':  # if no results with specified input params
                         no_results_text = 'No results for the specified input!'
                         self.main_window['-res_rid-'].update(no_results_text)
-                        self.main_window['-res-rid_dates-'].update(no_results_text)
+                        self.main_window['-res-rid-dates-'].update(no_results_text)
                     else:
                         self.main_window['-res_rid-'].update(res_rid)
 
                         # Update window with fist and last date of exam for each subject
                         res_rid_dates = self.dp.find_rid_ranges()
-                        self.main_window['-res-rid_dates-'].update(res_rid_dates)
+                        self.main_window['-res-rid-dates-'].update(res_rid_dates)
 
                         # Write to file if selected and there are results to write
-                        if self.values[18]:
+                        if self.main_window['-is-save-file-']:
                             self.write_to_file(stages, groups, age_file_name, res_rid, res_rid_dates)
                 else:
                     sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the CSVs folder and restart the program.')
@@ -197,7 +197,7 @@ class GUI:
 
     @staticmethod
     def write_to_file(stages, groups, fn, res_rid, dates):
-        with open('_'.join(stages) + '_' + '_'.join(groups) + '_' + fn + '.txt', 'w') as f:
+        with open('_'.join(stages) + '_' + '_'.join(groups) + '_' + fn + '.txt', 'w', encoding='utf-8') as f:
             f.write("Subject IDs:\n")
             f.write(res_rid)
             f.write("\n\n")
