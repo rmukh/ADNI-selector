@@ -2,6 +2,7 @@
 # Copyrights (c), 2020, Rinat Mukhometzianov
 
 import pandas as pd
+import matplotlib.pyplot as plt
 import PySimpleGUI as sg
 from os.path import exists
 from os.path import join
@@ -57,12 +58,13 @@ class DataProcessing:
             self.filtered_groups = groups.filter(lambda x: x.DX.eq(diags[0]).values[0] & x.DX.eq(diags[1]).values[-1])
 
         u_ptids = self.filtered_groups.PTID.unique()
-        return u_ptids
+        return self.filtered_groups, u_ptids
 
     def find_rid_ranges(self):
         ptid_groups = self.filtered_groups.groupby('PTID', sort=False)
 
-        frame = pd.DataFrame({'\u3000\u3000\u3000First': ptid_groups.first().EXAMDATE, '\u3000\u3000Last': ptid_groups.last().EXAMDATE})
+        frame = pd.DataFrame({'\u3000\u3000\u3000First': ptid_groups.first().EXAMDATE,
+                              '\u3000\u3000Last': ptid_groups.last().EXAMDATE})
         return frame.to_string()
 
 
@@ -110,7 +112,8 @@ class GUI:
             [sg.Multiline(key='-res_rid-', size=(50, 7))],
             [sg.Text('Subject IDs date ranges', font=("Open Sans", 16))],
             [sg.Multiline(key='-res-rid-dates-', size=(50, 7))],
-            [sg.Button('Select', font=("Open Sans", 14))]
+            [sg.Button('Select', font=("Open Sans", 14)),
+             sg.Button('Distr', font=("Open Sans", 14))]
         ]
 
         self.main_window = sg.Window('Select subjects', self.main_layout, grab_anywhere=False)
@@ -133,6 +136,7 @@ class GUI:
                                     ])
 
         self.values = None
+        self.event = None
         self.dp = DataProcessing()
 
     def age_check(self):
@@ -142,7 +146,8 @@ class GUI:
         """
         age = 0.0
         age_range = 0.0
-        if self.values['-age-'].replace('.', '', 1).isdigit() and self.values['-age-range-'].replace('.', '', 1).isdigit():
+        if self.values['-age-'].replace('.', '', 1).isdigit() and \
+                self.values['-age-range-'].replace('.', '', 1).isdigit():
             age = float(self.values['-age-'])
             age_range = float(self.values['-age-range-'])
             if age < 0.0 or age_range < 0.0:
@@ -153,40 +158,60 @@ class GUI:
             sg.Popup('Your input in the Age field is not a real value. Will be ignored in the final output.')
         return age, age_range
 
+    def groups_stages(self):
+        stages = [self.menu_map_stage[i] for i in range(4) if self.values[i]]
+        groups = [self.menu_map_group[i] for i in range(4, 12) if self.values[i]][0]
+        return stages, groups
+
+    def select_button(self):
+        age, age_range = self.age_check()
+        age_file_name = str(age - age_range) + '-' + str(age + age_range) if age != 0.0 else ''
+
+        stages, groups = self.groups_stages()
+
+        _, res = self.dp.select_and_generate(stages, groups, age, age_range, self.values['-is-stable-'])
+        res_rid = ', '.join([str(i) for i in res])
+
+        if res_rid == '':  # if no results with specified input params
+            no_results_text = 'No results for the specified input!'
+            self.main_window['-res_rid-'].update(no_results_text)
+            self.main_window['-res-rid-dates-'].update(no_results_text)
+        else:
+            self.main_window['-res_rid-'].update(res_rid)
+
+            # Update window with fist and last date of exam for each subject
+            res_rid_dates = self.dp.find_rid_ranges()
+            self.main_window['-res-rid-dates-'].update(res_rid_dates)
+
+            # Write to file if selected and there are results to write
+            if self.values['-is-save-file-']:
+                self.write_to_file(stages, groups, age_file_name, res_rid, res_rid_dates)
+
+    def show_distributions_button(self):
+        stages, groups = self.groups_stages()
+
+        res, _ = self.dp.select_and_generate(stages, groups, 0, 0, self.values['-is-stable-'])
+        ax = res.hist(column='AGE', grid=False)
+        x = ax[0, 0]
+        x.spines['right'].set_visible(False)
+        x.spines['top'].set_visible(False)
+        x.spines['left'].set_visible(False)
+        plt.show()
+
     def run(self):
         while True:
-            event, self.values = self.main_window.read()
+            self.event, self.values = self.main_window.read()
 
-            if event == sg.WINDOW_CLOSED or event == 'Exit':
+            if self.dp.is_merge_exists():
+                if self.event == 'Select':
+                    self.select_button()
+                elif self.event == 'Distr':
+                    self.show_distributions_button()
+            else:
+                sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the CSVs folder and restart the program.')
+
+            if self.event == sg.WINDOW_CLOSED or self.event == 'Exit':
                 break
-            if event == 'Select':
-                age, age_range = self.age_check()
-                age_file_name = str(age - age_range) + '-' + str(age + age_range) if age != 0.0 else ''
-
-                if self.dp.is_merge_exists():
-                    stages = [self.menu_map_stage[i] for i in range(4) if self.values[i]]
-                    groups = [self.menu_map_group[i] for i in range(4, 12) if self.values[i]][0]
-
-                    res = self.dp.select_and_generate(stages, groups, age, age_range, self.values['-is-stable-'])
-                    res_rid = ', '.join([str(i) for i in res])
-
-                    if res_rid == '':  # if no results with specified input params
-                        no_results_text = 'No results for the specified input!'
-                        self.main_window['-res_rid-'].update(no_results_text)
-                        self.main_window['-res-rid-dates-'].update(no_results_text)
-                    else:
-                        self.main_window['-res_rid-'].update(res_rid)
-
-                        # Update window with fist and last date of exam for each subject
-                        res_rid_dates = self.dp.find_rid_ranges()
-                        self.main_window['-res-rid-dates-'].update(res_rid_dates)
-
-                        # Write to file if selected and there are results to write
-
-                        if self.values['-is-save-file-']:
-                            self.write_to_file(stages, groups, age_file_name, res_rid, res_rid_dates)
-                else:
-                    sg.Popup('ADNIMERGE.csv not found!', 'Please, put it in the CSVs folder and restart the program.')
 
         self.main_window.close()
 
