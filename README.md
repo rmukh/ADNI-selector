@@ -9,3 +9,4 @@ To use the program, please, create **folder** 'CSVs' in the root directory and p
 Please, make sure to have those packages installed:
 * Pandas
 * PySimpleGUI
+* Matplotlib
