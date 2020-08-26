@@ -1,3 +1,4 @@
-/CSVs/
 **/.idea/
 *.iml
+*.csv
+!/CSVs/
