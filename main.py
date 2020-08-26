@@ -190,12 +190,20 @@ class GUI:
     def show_distributions_button(self):
         stages, groups = self.groups_stages()
 
+        # make strings for graph title
+        stages_string = ', '.join([str(i) for i in stages])
+        groups_string = '->'.join([str(i) for i in groups])
+
+        # get subset of subjects independent of their age
         res, _ = self.dp.select_and_generate(stages, groups, 0, 0, self.values['-is-stable-'])
+
+        # Run graph
         ax = res.hist(column='AGE', grid=False)
         x = ax[0, 0]
         x.spines['right'].set_visible(False)
         x.spines['top'].set_visible(False)
         x.spines['left'].set_visible(False)
+        x.set_title("Age distribution for "+groups_string+" in "+stages_string)
         plt.show()
 
     def run(self):
