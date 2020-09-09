@@ -21,20 +21,29 @@ class DataProcessing:
         # Check if ADNIMERGE.csv file is available
         return exists(self.merge_file)
 
+    @staticmethod
+    def change_dementia_naming(diags):
+        new_diags = []
+        for i, elem in enumerate(diags):
+            new_diags.append("Dementia" if elem == "AD" else diags[i])
+        return new_diags
+
     def select_and_generate(self, stages, diags, age, age_range, stable_only):
         adni_full = pd.read_csv(self.merge_file, skipinitialspace=True, usecols=self.fields)
+
+        alt_diags = self.change_dementia_naming(diags)
 
         if len(diags) == 1:
             if diags[0] == 'EMCI' or diags[0] == 'LMCI':
                 # for classification group selection
                 self.filtered_groups = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX_bl.isin(diags)]
             else:
-                self.filtered_groups = adni_full[adni_full.COLPROT.isin(stages) & (adni_full.DX.isin(diags) |
+                self.filtered_groups = adni_full[adni_full.COLPROT.isin(stages) & (adni_full.DX.isin(alt_diags) |
                                                                                    adni_full.DX_bl.isin(diags))]
 
             if age != 0.0:
-                self.filtered_groups = self.filtered_groups[self.filtered_groups.AGE.between(age - age_range, age +
-                                                                                             age_range)]
+                self.filtered_groups = self.filtered_groups[self.filtered_groups.AGE.between(age - age_range,
+                                                                                             age + age_range)]
 
             self.filtered_groups = self.filtered_groups.sort_values(by=['Month'])
 
@@ -42,10 +51,10 @@ class DataProcessing:
                 self.filtered_groups = self.filtered_groups.dropna(subset=['DX'])
 
                 groups = self.filtered_groups.groupby('RID', sort=False)
-                self.filtered_groups = groups.filter(lambda x: x.DX.eq(diags[0]).all())
+                self.filtered_groups = groups.filter(lambda x: x.DX.eq(alt_diags[0]).all())
 
         else:
-            phase = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX.isin(diags)]
+            phase = adni_full[adni_full.COLPROT.isin(stages) & adni_full.DX.isin(alt_diags)]
 
             if age != 0.0:
                 phase = phase[phase.AGE.between(age - age_range, age + age_range)]
@@ -54,13 +63,18 @@ class DataProcessing:
 
             groups = phase.groupby('RID', sort=False)
 
-            # Filter subjects that are converged from diags[0] to diags[1]
-            self.filtered_groups = groups.filter(lambda x: x.DX.eq(diags[0]).values[0] & x.DX.eq(diags[1]).values[-1])
+            # Filter subjects that are converged from alt_diags[0] to alt_diags[1]
+            self.filtered_groups = groups.filter(lambda x:
+                                                 x.DX.eq(alt_diags[0]).values[0] &
+                                                 x.DX.eq(alt_diags[1]).values[-1])
 
         u_ptids = self.filtered_groups.PTID.unique()
         return self.filtered_groups, u_ptids
 
     def find_rid_ranges(self):
+        """
+        :return first and the last date of the subject
+        """
         ptid_groups = self.filtered_groups.groupby('PTID', sort=False)
 
         frame = pd.DataFrame({'\u3000\u3000\u3000First': ptid_groups.first().EXAMDATE,
